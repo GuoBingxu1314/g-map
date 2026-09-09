@@ -1,0 +1,55 @@
+{
+  "name": "g-map",
+  "version": "1.0.0",
+  "description": "A declarative Vue 3 map component library built on OpenLayers.",
+  "type": "module",
+  "license": "MIT",
+  "author": "郭炳旭",
+  "keywords": [
+    "vue",
+    "vue3",
+    "map",
+    "openlayers",
+    "ol",
+    "gis",
+    "components"
+  ],
+  "module": "./dist/g-map.js",
+  "types": "./dist/g-map.d.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/g-map.d.ts",
+      "import": "./dist/g-map.js"
+    },
+    "./style.css": "./dist/g-map.css"
+  },
+  "scripts": {
+    "build": "vite build",
+    "type-check": "vue-tsc --build --force",
+    "prepublishOnly": "pnpm build"
+  },
+  "peerDependencies": {
+    "ol": "^10.10.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^24.13.3",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "ol": "^10.10.0",
+    "typescript": "~6.0.0",
+    "vite": "^8.1.5",
+    "vite-plugin-dts": "^5.1.0",
+    "vue": "^3.5.0",
+    "vue-tsc": "^3.3.7"
+  }
+}
