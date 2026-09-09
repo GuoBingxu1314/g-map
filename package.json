@@ -1,6 +1,6 @@
 {
-  "name": "g-map",
-  "version": "1.0.0",
+  "name": "@guobingxu/g-map",
+  "version": "0.1.0",
   "description": "A declarative Vue 3 map component library built on OpenLayers.",
   "type": "module",
   "license": "MIT",
