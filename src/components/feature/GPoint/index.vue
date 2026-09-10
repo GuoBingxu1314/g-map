@@ -12,7 +12,7 @@ import Stroke from 'ol/style/Stroke';
 
 import { fromLonLat, toLonLat } from 'ol/proj';
 
-import { MAP_KEY, FEATURE_KEY } from '@/context/keys';
+import { MAP_KEY, FEATURE_GEOMETRY_KEY, FEATURE_STYLE_KEY } from '@/context/keys';
 
 import { createPointStyle, resolvePointStyleOptions } from '@/styles/point';
 import { updateIconScale } from '@/utils/iconScale.js';
@@ -40,15 +40,12 @@ if (!map) {
   throw new Error('[GPoint] must be used inside [GMap]');
 }
 
-const feature = inject(FEATURE_KEY);
-if (!feature) {
+const controller = inject(FEATURE_GEOMETRY_KEY);
+if (!controller) {
   throw new Error('[GPoint] must be used inside [GFeature]');
 }
 
-// 一个 GFeature 只能拥有一个 Geometry
-if (feature.getGeometry()) {
-  throw new Error('[GPoint] A GFeature can only contain one geometry');
-}
+const styleController = inject(FEATURE_STYLE_KEY);
 
 // --------------------------------------------------
 // Slot Icon
@@ -132,11 +129,12 @@ function resetCurrentStyle() {
 // Point
 // --------------------------------------------------
 
+const owner = Symbol('GPoint');
+
 const point = new Point(
   fromLonLat(props.coordinates),
 );
-
-feature.setGeometry(point);
+controller.registerGeometry(owner, point, 'GPoint');
 
 /**
  * Point -> Vue
@@ -298,7 +296,7 @@ function createStyle() {
 function updateStyle() {
   const style = createStyle();
 
-  feature?.setStyle(style);
+  styleController?.setStyle('base', style);
 }
 
 // --------------------------------------------------
@@ -370,18 +368,15 @@ watch(
 // --------------------------------------------------
 
 onBeforeUnmount(() => {
-  point.un(
-    'change',
-    handlePointChange,
-  );
+  point.un('change', handlePointChange);
 
   slotObserver?.disconnect();
   slotObserver = undefined;
 
-  resetCurrentStyle();
+  styleController?.clearStyle('base');
+  controller.unregisterGeometry(owner, point);
 
-  feature.setGeometry(undefined);
-  feature.setStyle(undefined);
+  resetCurrentStyle();
 });
 </script>
 

@@ -11,6 +11,12 @@ export type {
   FeatureEvents,
 } from './context/feature/events';
 
+// Feature style
+export type {
+  StyleLayer,
+  FeatureStyleController,
+} from './context/feature/style';
+
 // Styles
 export type { PointStyleOptions, ResolvedPointStyleOptions } from './styles/point';
 export type { IconStyleOptions } from './styles/icon';
@@ -18,7 +24,16 @@ export type { LineStringStyleOptions } from './styles/line';
 export type { PolygonStyleOptions } from './styles/polygon';
 export type { CircleStyleOptions } from './styles/circle';
 export type { SelectStyleOptions } from './styles/select';
+export type { HoverStyleOptions } from './styles/hover';
 export type { DrawStyleOptions } from './styles/draw';
+
+// Mass points
+export type {
+  MassPointItem,
+  MassPointStyleValue,
+  MassPointStyleMapping,
+  MassPointIconStyle,
+} from './styles/massPoint';
 
 // Interaction & map controllers
 export type {

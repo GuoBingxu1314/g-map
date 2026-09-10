@@ -1,11 +1,11 @@
 import type Feature from 'ol/Feature';
 import type Map from 'ol/Map';
 import type MapBrowserEvent from 'ol/MapBrowserEvent';
-import type { StyleLike } from 'ol/style/Style';
 import { createSelectStyle, type SelectStyleOptions } from '@/styles/select';
 
 import { createGFeatureEvent, getFeatureEvents } from '@/context/feature/events';
 import { isFeatureSelected, setFeatureSelected } from '@/context/feature/state';
+import { getFeatureStyleController } from '@/context/feature/style';
 
 export interface SelectFeatureOptions {
   filter?: (feature: Feature) => boolean;
@@ -21,8 +21,6 @@ export interface SelectController {
   getSelectedFeatures: () => Feature[];
   destroy: () => void;
 }
-
-const originalStyles = new WeakMap<Feature, StyleLike | undefined>();
 
 function getFeatureAtPixel(map: Map, pixel: number[]): Feature | undefined {
   let result: Feature | undefined;
@@ -61,13 +59,9 @@ export function createSelectController(map: Map): SelectController {
     selectedFeatures.add(feature);
     setFeatureSelected(feature, true);
 
-    originalStyles.set(feature, feature.getStyle());
-
     const style = createSelectStyle(feature, options.style);
 
-    if (style) {
-      feature.setStyle(style);
-    }
+    getFeatureStyleController(feature).setStyle('select', style);
 
     getFeatureEvents(feature)?.select?.(createGFeatureEvent(feature, event));
   }
@@ -78,9 +72,7 @@ export function createSelectController(map: Map): SelectController {
     selectedFeatures.delete(feature);
     setFeatureSelected(feature, false);
 
-    const originalStyle = originalStyles.get(feature);
-    feature.setStyle(originalStyle);
-    originalStyles.delete(feature);
+    getFeatureStyleController(feature).clearStyle('select');
 
     getFeatureEvents(feature)?.unselect?.(createGFeatureEvent(feature, event));
   }
@@ -125,8 +117,7 @@ export function createSelectController(map: Map): SelectController {
     selectedFeatures.forEach(feature => {
       setFeatureSelected(feature, false);
 
-      feature.setStyle(originalStyles.get(feature));
-      originalStyles.delete(feature);
+      getFeatureStyleController(feature).clearStyle('select');
     });
 
     selectedFeatures.clear();

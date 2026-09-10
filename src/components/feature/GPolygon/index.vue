@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PolygonStyleOptions } from '@/styles/polygon';
+import type Style from 'ol/style/Style';
 
 import { inject, onBeforeUnmount, watch } from 'vue';
 
@@ -7,7 +8,7 @@ import Polygon from 'ol/geom/Polygon';
 
 import { fromLonLat, toLonLat } from 'ol/proj';
 
-import { FEATURE_KEY } from '@/context/keys';
+import { FEATURE_GEOMETRY_KEY, FEATURE_STYLE_KEY } from '@/context/keys';
 
 import { createPolygonStyle } from '@/styles/polygon';
 
@@ -25,15 +26,15 @@ const emit = defineEmits<{
   'update:coordinates': [coordinates: [number, number][][]];
 }>();
 
-const feature = inject(FEATURE_KEY);
+const controller = inject(FEATURE_GEOMETRY_KEY);
 
-if (!feature) {
-  throw new Error('[GPolygon] must be used winth in [GFeature]');
+if (!controller) {
+  throw new Error('[GPolygon] must be used inside [GFeature]');
 }
 
-if (feature.getGeometry()) {
-  throw new Error('[GPolygon] A GFeature can only contain one geometry');
-}
+const styleController = inject(FEATURE_STYLE_KEY);
+
+const owner = Symbol('GPolygon');
 
 const polygon = new Polygon(
   props.coordinates.map(ring =>
@@ -43,7 +44,7 @@ const polygon = new Polygon(
   ),
 );
 
-feature.setGeometry(polygon);
+controller.registerGeometry(owner, polygon, 'GPolygon');
 
 function handleGeometryChange() {
   const coordinates = polygon
@@ -79,10 +80,14 @@ function updateCoordinates(coordinates: [number, number][][]) {
   polygon.setCoordinates(next);
 }
 
+let currentStyle: Style | undefined;
+
 function updateStyle() {
   const result = createPolygonStyle(props);
 
-  feature?.setStyle(result.style);
+  currentStyle = result.style;
+
+  styleController?.setStyle('base', currentStyle);
 }
 
 updateStyle();
@@ -114,8 +119,8 @@ watch(
 onBeforeUnmount(() => {
   polygon.un('change', handleGeometryChange);
 
-  feature.setGeometry(undefined);
-  feature.setStyle(undefined);
+  styleController?.clearStyle('base');
+  controller.unregisterGeometry(owner, polygon);
 })
 </script>
 

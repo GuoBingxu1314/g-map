@@ -86,7 +86,12 @@ const selectController = createSelectController(map);
 // 当前地图交互
 let interaction: InteractionType | undefined;
 
-const mapEventController = createMapEventController(map, () => !!interaction);
+// 第二谓词：仅绘制/拾取（interaction 非 select）时为 true，用于暂停 hover 高亮
+const mapEventController = createMapEventController(
+  map,
+  () => !!interaction,
+  () => !!interaction && interaction !== 'select',
+);
 
 let cancelInteractionHandler: (() => void) | undefined;
 // 地图选点

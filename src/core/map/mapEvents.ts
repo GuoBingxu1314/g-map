@@ -27,6 +27,7 @@ export interface MapEventController {
 export function createMapEventController(
   map: Map,
   isInteractionActive: () => boolean,
+  isPointerBusy?: () => boolean,
 ): MapEventController {
   let hoveredFeature: Feature | undefined;
 
@@ -47,9 +48,23 @@ export function createMapEventController(
     return result;
   }
 
-  function handlePointerMove(
+  // hover 命中检测主体（在 rAF 回调中执行）
+  function doHover(
     event: MapBrowserEvent,
   ) {
+    // 绘制/拾取占用指针时暂停 hover：清除当前悬停高亮并跳过
+    if (isPointerBusy?.()) {
+      if (hoveredFeature) {
+        getFeatureEvents(
+          hoveredFeature,
+        )?.mouseleave?.(createGFeatureEvent(hoveredFeature, event));
+
+        hoveredFeature = undefined;
+      }
+
+      return;
+    }
+
     const targetFeature = getFeatureAtPixel(
       event.pixel,
     );
@@ -71,6 +86,26 @@ export function createMapEventController(
     }
 
     hoveredFeature = targetFeature;
+  }
+
+  // rAF 节流：pointermove 高频（海量点场景尤甚），合并到每帧一次命中检测
+  let rafId: number | null = null;
+  let pendingEvent: MapBrowserEvent | null = null;
+
+  function handlePointerMove(
+    event: MapBrowserEvent,
+  ) {
+    pendingEvent = event;
+
+    if (rafId !== null) return;
+
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+
+      if (pendingEvent) doHover(pendingEvent);
+
+      pendingEvent = null;
+    });
   }
 
   function handleSingleClick(
@@ -173,6 +208,13 @@ export function createMapEventController(
       'dblclick',
       handleDblClick,
     );
+
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    pendingEvent = null;
 
     if (hoveredFeature) {
       hoveredFeature = undefined;

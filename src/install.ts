@@ -12,6 +12,7 @@ import {
   GLineString,
   GPolygon,
   GCircle,
+  GMassPoints,
 } from './components';
 
 const components = [
@@ -26,6 +27,7 @@ const components = [
   GLineString,
   GPolygon,
   GCircle,
+  GMassPoints,
 ];
 
 export function install(app: App) {
